@@ -327,3 +327,40 @@ model TeamMember {
   @@map("team_members")
 }
 
+enum OrganizerType {
+  COMPANY
+  STUDENT_CLUB
+  COMMUNITY
+  NONPROFIT
+  OTHER
+}
+
+enum OrganizerStatus {
+  PENDING
+  ACTIVE
+  REJECTED
+}
+
+model OrganizerProfile {
+  id               String          @id @default(uuid())
+  name             String
+  username         String          @unique
+  email            String          @unique
+  passwordHash     String          @map("password_hash")
+
+  organizationName String          @map("organization_name")
+  type             OrganizerType
+  description      String?
+  website          String?
+  logoUrl          String?         @map("logo_url")
+  phoneNumber      String?         @map("phone_number")
+  city             String?
+  country          String?
+
+  status           OrganizerStatus @default(PENDING)
+
+  createdAt        DateTime        @default(now()) @map("created_at")
+  updatedAt        DateTime        @updatedAt @map("updated_at")
+
+  @@map("organizer_profiles")
+}

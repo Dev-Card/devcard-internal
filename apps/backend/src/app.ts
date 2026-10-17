@@ -25,6 +25,7 @@ import { teamRoutes } from './routes/team.js';
 import { webhookRoutes } from './routes/webhooks.js';
 import { extractRawJwt, blocklistKey } from './utils/jwt.js';
 import { validateEnv } from './utils/validateEnv.js';
+import { organizerAuthRoutes } from './routes/organiser.js';
 
 import type { AuthenticatedUser } from './types/fastify.js';
 
@@ -129,7 +130,8 @@ if (process.env.NODE_ENV !== 'test') {
   await app.register(nfcRoutes, { prefix: '/api/nfc' });
   await app.register(teamRoutes, { prefix: '/api/teams' });
   await app.register(webhookRoutes, { prefix: '/api/webhooks' });
-
+  await app.register(organizerAuthRoutes, {prefix: '/organizers'})
+  
   app.get('/health', async () => ({
     status: 'ok',
     timestamp: new Date().toISOString(),
