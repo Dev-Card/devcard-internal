@@ -7,7 +7,7 @@ const cookieOptions = {
   path: '/',
   httpOnly: true,
   secure: process.env.NODE_ENV === 'production',
-  sameSite: 'strict' as const,
+  sameSite: 'none' as const,
   maxAge: 60 * 60 * 24, // 1 day
 };
 
@@ -78,12 +78,6 @@ export async function organizerAuthRoutes(
       });
     } catch (err: unknown) {
       handleDbError(err , request, reply)
-
-      request.log.error({ err }, 'Organizer signup failed');
-
-      return reply.status(500).send({
-        error: 'Internal server error',
-      });
     }
   });
 
@@ -150,5 +144,64 @@ export async function organizerAuthRoutes(
     return reply
       .clearCookie('accessToken', { path: '/' })
       .send({ message: 'Signed out successfully' });
+  });
+
+  // GET /organizers/me
+  app.get('/me', async (request, reply) => {
+    try {
+      const token = request.cookies.accessToken;
+
+      if (!token) {
+        return reply.status(401).send({
+          error: 'Authentication required',
+        });
+      }
+
+      const decoded = await app.jwt.verify<{
+        id: string;
+        sub: string;
+        accountType: string;
+      }>(token);
+
+      if (decoded.accountType !== 'ORGANIZER') {
+        return reply.status(403).send({
+          error: 'Organizer access required',
+        });
+      }
+
+      const organizer = await app.prisma.organizerProfile.findUnique({
+        where: { id: decoded.id },
+        select: {
+          id: true,
+          name: true,
+          username: true,
+          email: true,
+          organizationName: true,
+          type: true,
+          description: true,
+          website: true,
+          logoUrl: true,
+          phoneNumber: true,
+          city: true,
+          country: true,
+          status: true,
+          createdAt: true,
+        },
+      });
+
+      if (!organizer) {
+        return reply.status(404).send({
+          error: 'Organizer not found',
+        });
+      }
+
+      return reply.send({ organizer });
+    } catch (err: unknown) {
+      request.log.error({ err }, 'Organizer authentication failed');
+
+      return reply.status(401).send({
+        error: 'Invalid or expired authentication token',
+      });
+    }
   });
 }

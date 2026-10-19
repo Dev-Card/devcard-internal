@@ -40,7 +40,6 @@ model User {
   ownedViews       CardView[]        @relation("cardOwner")
   viewedCards      CardView[]        @relation("cardViewer")
   followLogs       FollowLog[]
-  organizer        Event[]
   attendedEvents   EventAttendee[]
   ownedTeams       Team[]            @relation("TeamOwner")
   teamMemberships  TeamMember[]      @relation("TeamMember")
@@ -234,7 +233,7 @@ model Event {
   createdAt   DateTime @default(now()) @map("created_at")
 
   attendees EventAttendee[]
-  organizer User            @relation(fields: [organizerId], references: [id])
+  organizer OrganizerProfile @relation(fields: [organizerId], references: [id])
 
   @@map("events")
 }
@@ -361,6 +360,8 @@ model OrganizerProfile {
 
   createdAt        DateTime        @default(now()) @map("created_at")
   updatedAt        DateTime        @updatedAt @map("updated_at")
+
+  events           Event[]
 
   @@map("organizer_profiles")
 }
